@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Tamu Digital</title>
+    <!-- Tailwind CSS untuk Styling Modern dan Responsif -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SweetAlert2 untuk Notifikasi yang Elegan -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome/Icons (menggunakan inline svg untuk efisiensi, tapi kita tambahkan CDN untuk opsi) -->
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .kiosk-input { font-size: 1.125rem; padding: 1rem; border-radius: 0.5rem; }
+        .hidden-view { display: none !important; }
+        /* Soft shadow for cards */
+        .card-shadow { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01); }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- ==================== MODE PENGUNJUNG (KIOSK) ==================== -->
+    <div id="view-visitor" class="flex-1 flex flex-col">
+        <!-- Navbar Kiosk -->
+        <nav class="bg-slate-900 text-white p-4 shadow-md flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                <span class="font-bold text-xl tracking-wide">Smart Tamu</span>
+            </div>
+            <button onclick="switchView('view-admin-login')" class="text-sm font-medium text-slate-300 hover:text-white transition">Login Admin</button>
+        </nav>
+
+        <!-- Kiosk Content -->
+        <main class="flex-1 max-w-4xl w-full mx-auto p-6 flex flex-col justify-center">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl md:text-5xl font-bold text-slate-800">BUKU TAMU DIGITAL</h1>
+                <p class="text-lg text-slate-500 mt-2">Silakan isi data diri Anda untuk pelayanan</p>
+                <div id="realtime-clock" class="text-2xl md:text-4xl font-bold text-blue-600 mt-4 font-mono tracking-wider">--:--:--</div>
+            </div>
+
+            <div class="bg-white p-6 md:p-10 rounded-2xl card-shadow border border-slate-100">
+                <form id="form-visitor" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Kiri -->
+                    <div class="space-y-5">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Nama Lengkap <span class="text-red-500">*</span></label>
+                            <input type="text" id="f_nama" class="w-full kiosk-input border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" placeholder="Masukkan nama lengkap">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">NIK / No. Identitas <span class="text-red-500">*</span></label>
+                            <input type="number" id="f_nik" class="w-full kiosk-input border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" placeholder="Minimal 8 digit">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">No. HP / WhatsApp <span class="text-red-500">*</span></label>
+                            <input type="number" id="f_nohp" class="w-full kiosk-input border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" placeholder="Contoh: 081234567890">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Instansi / Alamat Lengkap</label>
+                            <input type="text" id="f_instansi" class="w-full kiosk-input border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" placeholder="Dari mana Anda berasal">
+                        </div>
+                    </div>
+                    
+                    <!-- Kanan -->
+                    <div class="space-y-5">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Tujuan Kedatangan <span class="text-red-500">*</span></label>
+                            <select id="f_tujuan" class="w-full kiosk-input border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-white">
+                                <option value="" disabled selected>-- Pilih Tujuan --</option>
+                                <option value="Pelayanan Publik">Pelayanan Publik</option>
+                                <option value="Rapat / Koordinasi">Rapat / Koordinasi</option>
+                                <option value="Kunjungan Kerja">Kunjungan Kerja</option>
+                                <option value="Konsultasi">Konsultasi</option>
+                                <option value="Lainnya">Lainnya</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Nama Petugas Yang Dituju</label>
+                            <input type="text" id="f_petugas" class="w-full kiosk-input border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" placeholder="Kosongkan jika tidak ada">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Keperluan <span class="text-red-500">*</span></label>
+                            <textarea id="f_keperluan" rows="3" class="w-full kiosk-input border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition resize-none" placeholder="Tuliskan detail keperluan Anda..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Tombol Submit -->
+                    <div class="md:col-span-2 mt-4">
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xl py-4 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
+                            CHECK IN SEKARANG
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+
+    <!-- ==================== MODE ADMIN LOGIN ==================== -->
+    <div id="view-admin-login" class="hidden-view flex-1 flex items-center justify-center bg-slate-100">
+        <div class="bg-white p-8 rounded-xl shadow-lg max-w-sm w-full border border-slate-200">
+            <div class="text-center mb-6">
+                <svg class="w-12 h-12 text-slate-800 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                <h2 class="text-2xl font-bold text-slate-800">Login Admin</h2>
+                <p class="text-sm text-slate-500">Gunakan password: admin</p>
+            </div>
+            <form id="form-login" class="space-y-4">
+                <div>
+                    <input type="password" id="f_password" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Masukkan Password">
+                </div>
+                <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-lg transition">Masuk</button>
+                <button type="button" onclick="switchView('view-visitor')" class="w-full text-slate-500 font-medium text-sm mt-2 hover:text-slate-800">Kembali ke Kiosk</button>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- ==================== MODE ADMIN DASHBOARD ==================== -->
+    <div id="view-admin-dashboard" class="hidden-view flex-1 flex flex-col bg-slate-50">
+        <!-- Navbar Admin -->
+        <nav class="bg-slate-900 text-white p-4 shadow-md flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <span class="font-bold text-xl">Admin Panel - Smart Tamu</span>
+            </div>
+            <div class="flex gap-4">
+                <button onclick="exportCSV()" class="bg-emerald-600 hover:bg-emerald-700 px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> Export CSV
+                </button>
+                <button onclick="switchView('view-visitor')" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-semibold transition">Mode Kiosk</button>
+                <button onclick="logoutAdmin()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-sm font-semibold transition">Logout</button>
+            </div>
+        </nav>
+
+        <main class="flex-1 p-6 max-w-7xl w-full mx-auto">
+            <!-- Statistik -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+                    <div class="p-4 bg-blue-100 text-blue-600 rounded-lg">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-500 font-medium">Kunjungan Hari Ini</p>
+                        <p class="text-3xl font-bold text-slate-800" id="stat-today">0</p>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+                    <div class="p-4 bg-purple-100 text-purple-600 rounded-lg">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-500 font-medium">Bulan Ini</p>
+                        <p class="text-3xl font-bold text-slate-800" id="stat-month">0</p>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+                    <div class="p-4 bg-emerald-100 text-emerald-600 rounded-lg">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-500 font-medium">Total Keseluruhan</p>
+                        <p class="text-3xl font-bold text-slate-800" id="stat-total">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabel Data -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+                <div class="p-4 border-b border-slate-200 bg-slate-50 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <h3 class="font-bold text-lg text-slate-800">Daftar Kunjungan</h3>
+                    <div class="flex gap-2 w-full md:w-auto">
+                        <input type="date" id="filter-date" class="p-2 border border-slate-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500" onchange="renderTable()">
+                        <input type="text" id="search-query" class="p-2 border border-slate-300 rounded-lg text-sm w-full md:w-64 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Cari Nama / NIK..." onkeyup="renderTable()">
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-600 text-sm border-b border-slate-200">
+                                <th class="p-3 font-semibold">ID Kunjungan</th>
+                                <th class="p-3 font-semibold">Tamu</th>
+                                <th class="p-3 font-semibold">Tujuan</th>
+                                <th class="p-3 font-semibold">Waktu Datang</th>
+                                <th class="p-3 font-semibold">Status</th>
+                                <th class="p-3 font-semibold text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body" class="divide-y divide-slate-200">
+                            <!-- Rows akan di-render via JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="p-4 bg-slate-50 border-t border-slate-200 text-sm text-slate-500" id="table-info">
+                    Menampilkan 0 data
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-slate-900 bg-opacity-50 z-50 hidden flex-col items-center justify-center">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-white mb-4"></div>
+        <p class="text-white font-semibold text-lg">Memproses Data...</p>
+    </div>
+
+    <!-- ==================== JAVASCRIPT / LOGIKA ==================== -->
+    <script>
+        // State Global (Database Simulation)
+        let db = { visitors: [] };
+
+        // 1. Inisialisasi Aplikasi
+        document.addEventListener("DOMContentLoaded", () => {
+            updateClock();
+            loadData(); // Load data based on environment (GAS / Local)
+            switchView('view-visitor'); // Default view
+        });
+
+        // 2. Navigasi View
+        function switchView(viewId) {
+            document.querySelectorAll('.hidden-view, #view-visitor').forEach(el => {
+                el.classList.add('hidden-view');
+                if(el.id === 'view-visitor') el.style.display = 'none';
+            });
+            
+            const target = document.getElementById(viewId);
+            if(target) {
+                target.classList.remove('hidden-view');
+                if(viewId === 'view-visitor') target.style.display = 'flex';
+                
+                if(viewId === 'view-admin-dashboard') {
+                    renderDashboardStats();
+                    renderTable();
+                }
+            }
+        }
+
+        // 3. Waktu Jakarta (Asia/Jakarta)
+        function getJakartaTime() {
+            const opts = { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+            const parts = new Intl.DateTimeFormat('en-CA', opts).formatToParts(new Date());
+            let y = parts.find(p=>p.type==='year').value;
+            let m = parts.find(p=>p.type==='month').value;
+            let d = parts.find(p=>p.type==='day').value;
+            let h = parts.find(p=>p.type==='hour').value;
+            let min = parts.find(p=>p.type==='minute').value;
+            let s = parts.find(p=>p.type==='second').value;
+            if (h === '24') h = '00';
+            return { raw: `${y}-${m}-${d} ${h}:${min}:${s}`, dateObj: {y, m, d, h, min, s} };
+        }
+
+        function updateClock() {
+            setInterval(() => {
+                let el = document.getElementById('realtime-clock');
+                if(el) el.innerText = getJakartaTime().raw;
+            }, 1000);
+        }
+
+        function generateID() {
+            let t = getJakartaTime().dateObj;
+            return `TAMU-${t.y}${t.m}${t.d}-${t.h}${t.min}${t.s}`;
+        }
+
+        // 4. Loading System
+        function startLoading() { document.getElementById('loading-overlay').classList.remove('hidden'); document.getElementById('loading-overlay').classList.add('flex'); }
+        function endLoading() { document.getElementById('loading-overlay').classList.add('hidden'); document.getElementById('loading-overlay').classList.remove('flex'); }
+
+        // 5. Load Data (Simulation / GAS)
+        function loadData() {
+            startLoading();
+            if (typeof google === 'undefined') {
+                // [MODE SIMULASI] - Menggunakan LocalStorage
+                setTimeout(() => {
+                    let saved = localStorage.getItem('smartTamuDb');
+                    if (saved) {
+                        db = JSON.parse(saved);
+                    } else {
+                        // Dummy Data Awal
+                        db.visitors = [
+                            { id: generateID(), nama: "Budi Santoso", nik: "3271000011112222", instansi: "PT Maju Terus", nohp: "081234567890", tujuan: "Pelayanan Publik", petugas: "Pak RT", keperluan: "Mengurus surat domisili", waktuDatang: getJakartaTime().raw, status: "Selesai" }
+                        ];
+                        localStorage.setItem('smartTamuDb', JSON.stringify(db));
+                    }
+                    endLoading();
+                }, 500); // Simulasi delay network
+            } else {
+                // [MODE GAS PRODUCTION]
+                google.script.run
+                    .withSuccessHandler(res => { db = res; endLoading(); })
+                    .withFailureHandler(err => { console.error(err); endLoading(); Swal.fire('Error', 'Gagal memuat data dari server.', 'error'); })
+                    .getAllData();
+            }
+        }
+
+        function syncData() {
+            if (typeof google === 'undefined') {
+                localStorage.setItem('smartTamuDb', JSON.stringify(db));
+                renderDashboardStats();
+                renderTable();
+            } else {
+                // Di mode GAS, sync dipanggil per aksi (save, update, delete)
+            }
+        }
+
+        // 6. Form Submission (Kiosk)
+        document.getElementById('form-visitor').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Ambil value
+            let nama = document.getElementById('f_nama').value.trim();
+            let nik = document.getElementById('f_nik').value.trim();
+            let nohp = document.getElementById('f_nohp').value.trim();
+            let instansi = document.getElementById('f_instansi').value.trim();
+            let tujuan = document.getElementById('f_tujuan').value;
+            let petugas = document.getElementById('f_petugas').value.trim();
+            let keperluan = document.getElementById('f_keperluan').value.trim();
+
+            // Validasi
+            if(!nama) return showError('Nama lengkap wajib diisi!');
+            if(nik.length < 8) return showError('NIK minimal 8 digit angka!');
+            if(nohp.length < 10) return showError('No. HP minimal 10 digit angka!');
+            if(!tujuan) return showError('Tujuan kedatangan wajib dipilih!');
+            if(!keperluan) return showError('Keperluan tidak boleh kosong!');
+
+            let newData = {
+                id: generateID(),
+                nama, nik, nohp, instansi, tujuan, petugas, keperluan,
+                waktuDatang: getJakartaTime().raw,
+                status: 'Menunggu'
+            };
+
+            startLoading();
+
+            if (typeof google === 'undefined') {
+                // Simulasi
+                setTimeout(() => {
+                    db.visitors.push(newData);
+                    syncData();
+                    endLoading();
+                    Swal.fire({ title: 'Berhasil!', text: 'Data kunjungan Anda telah tersimpan. Silakan menunggu panggilan.', icon: 'success', confirmButtonColor: '#2563eb' });
+                    this.reset();
+                    window.scrollTo(0,0);
+                }, 600);
+            } else {
+                // GAS
+                google.script.run
+                    .withSuccessHandler(res => {
+                        db = res; // Update local state with latest DB
+                        endLoading();
+                        Swal.fire({ title: 'Berhasil!', text: 'Data kunjungan Anda telah tersimpan.', icon: 'success', confirmButtonColor: '#2563eb' });
+                        this.reset();
+                        window.scrollTo(0,0);
+                    })
+                    .withFailureHandler(err => {
+                        endLoading();
+                        showError('Gagal menyimpan ke server GAS.');
+                    })
+                    .saveData(newData);
+            }
+        });
+
+        function showError(msg) {
+            Swal.fire({ icon: 'warning', title: 'Validasi Gagal', text: msg, confirmButtonColor: '#ef4444' });
+        }
+
+        // 7. Admin Login Logic
+        document.getElementById('form-login').addEventListener('submit', function(e) {
+            e.preventDefault();
+            let pass = document.getElementById('f_password').value;
+            if(pass === 'admin') {
+                document.getElementById('f_password').value = '';
+                switchView('view-admin-dashboard');
+                Swal.fire({ icon: 'success', title: 'Login Berhasil', toast: true, position: 'top-end', timer: 2000, showConfirmButton: false });
+            } else {
+                showError('Password Salah!');
+            }
+        });
+
+        function logoutAdmin() {
+            Swal.fire({
+                title: 'Yakin ingin logout?', icon: 'question', showCancelButton: true, confirmButtonColor: '#3085d6', cancelButtonColor: '#d33', confirmButtonText: 'Ya, Logout'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    switchView('view-visitor');
+                }
+            });
+        }
+
+        // 8. Dashboard Render & Logic
+        function renderDashboardStats() {
+            let today = getJakartaTime().raw.split(' ')[0]; // YYYY-MM-DD
+            let month = today.substring(0, 7); // YYYY-MM
+
+            let countToday = 0;
+            let countMonth = 0;
+
+            db.visitors.forEach(v => {
+                let vDate = v.waktuDatang.split(' ')[0];
+                if(vDate === today) countToday++;
+                if(vDate.startsWith(month)) countMonth++;
+            });
+
+            document.getElementById('stat-today').innerText = countToday;
+            document.getElementById('stat-month').innerText = countMonth;
+            document.getElementById('stat-total').innerText = db.visitors.length;
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+            
+            let filterDate = document.getElementById('filter-date').value;
+            let query = document.getElementById('search-query').value.toLowerCase();
+            
+            let data = db.visitors;
+            
+            if (filterDate) data = data.filter(v => v.waktuDatang.startsWith(filterDate));
+            if (query) data = data.filter(v => v.nama.toLowerCase().includes(query) || v.nik.includes(query) || v.id.toLowerCase().includes(query));
+            
+            // Urutkan terbaru di atas
+            data.sort((a,b) => new Date(b.waktuDatang) - new Date(a.waktuDatang));
+            
+            document.getElementById('table-info').innerText = `Menampilkan ${data.length} dari ${db.visitors.length} total data.`;
+
+            if(data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500">Tidak ada data kunjungan ditemukan.</td></tr>`;
+                return;
+            }
+
+            data.forEach(v => {
+                let colorClass = v.status === 'Selesai' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 
+                                 v.status === 'Diproses' ? 'bg-blue-100 text-blue-700 border-blue-200' : 
+                                 'bg-amber-100 text-amber-700 border-amber-200';
+                                 
+                let tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
+                tr.innerHTML = `
+                    <td class="p-3 text-sm font-mono text-slate-500">${v.id}</td>
+                    <td class="p-3">
+                        <div class="font-semibold text-slate-800">${v.nama}</div>
+                        <div class="text-xs text-slate-500">${v.instansi || '-'} | ${v.nohp}</div>
+                    </td>
+                    <td class="p-3 text-sm">
+                        <span class="font-medium text-slate-700">${v.tujuan}</span><br>
+                        <span class="text-xs text-slate-500 line-clamp-1" title="${v.keperluan}">${v.keperluan}</span>
+                    </td>
+                    <td class="p-3 text-sm text-slate-600 whitespace-nowrap">${v.waktuDatang}</td>
+                    <td class="p-3">
+                        <select onchange="updateStatus('${v.id}', this.value)" class="text-xs font-semibold p-1.5 rounded border outline-none cursor-pointer ${colorClass}">
+                            <option value="Menunggu" ${v.status==='Menunggu'?'selected':''} class="bg-white text-slate-800">Menunggu</option>
+                            <option value="Diproses" ${v.status==='Diproses'?'selected':''} class="bg-white text-slate-800">Diproses</option>
+                            <option value="Selesai" ${v.status==='Selesai'?'selected':''} class="bg-white text-slate-800">Selesai</option>
+                        </select>
+                    </td>
+                    <td class="p-3 text-center">
+                        <button onclick="deleteVisitor('${v.id}')" class="text-red-500 hover:text-red-700 p-2 rounded-lg hover:bg-red-50 transition" title="Hapus Data">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // 9. Update & Delete Logic
+        function updateStatus(id, newStatus) {
+            if (typeof google === 'undefined') {
+                let visitor = db.visitors.find(v => v.id === id);
+                if(visitor) {
+                    visitor.status = newStatus;
+                    syncData();
+                    Swal.fire({icon: 'success', title: 'Status Diperbarui', toast: true, position: 'top-end', timer: 1500, showConfirmButton: false});
+                }
+            } else {
+                startLoading();
+                google.script.run
+                    .withSuccessHandler(res => {
+                        db = res;
+                        endLoading();
+                        renderTable();
+                        Swal.fire({icon: 'success', title: 'Status Diperbarui', toast: true, position: 'top-end', timer: 1500, showConfirmButton: false});
+                    })
+                    .updateData(id, newStatus);
+            }
+        }
+
+        function deleteVisitor(id) {
+            Swal.fire({
+                title: 'Hapus Kunjungan?', text: "Data tidak dapat dikembalikan!", icon: 'warning',
+                showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#64748b', confirmButtonText: 'Ya, Hapus!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    if (typeof google === 'undefined') {
+                        db.visitors = db.visitors.filter(v => v.id !== id);
+                        syncData();
+                        Swal.fire('Terhapus!', 'Data berhasil dihapus.', 'success');
+                    } else {
+                        startLoading();
+                        google.script.run
+                            .withSuccessHandler(res => {
+                                db = res;
+                                endLoading();
+                                renderDashboardStats();
+                                renderTable();
+                                Swal.fire('Terhapus!', 'Data berhasil dihapus.', 'success');
+                            })
+                            .deleteData(id);
+                    }
+                }
+            });
+        }
+
+        // 10. Export CSV
+        function exportCSV() {
+            if(db.visitors.length === 0) return showError("Tidak ada data untuk diexport!");
+            
+            let csvContent = "data:text/csv;charset=utf-8,";
+            // Header
+            csvContent += "ID Kunjungan,Nama,NIK,Instansi,No HP,Tujuan,Petugas,Keperluan,Waktu Datang,Status\n";
+            
+            // Data
+            db.visitors.forEach(v => {
+                let safeKeperluan = v.keperluan.replace(/"/g, '""'); // escape double quotes
+                let row = `"${v.id}","${v.nama}","${v.nik}","${v.instansi}","${v.nohp}","${v.tujuan}","${v.petugas}","${safeKeperluan}","${v.waktuDatang}","${v.status}"`;
+                csvContent += row + "\r\n";
+            });
+            
+            let encodedUri = encodeURI(csvContent);
+            let link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Data_Tamu_${getJakartaTime().raw.split(' ')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+
+    <!-- 
+    ===================================================================
+    BACKEND KODE GOOGLE APPS SCRIPT (CODE.GS)
+    Disematkan dalam file HTML untuk mematuhi Single-File Mandate, 
+    Silakan copy text di bawah ini dan paste ke file Code.gs Anda.
+    ===================================================================
+    -->
+    <script type="text/plain" id="gas-backend-code">
+/* === BACKEND (Code.gs) === */
+function doGet() {
+  return HtmlService.createTemplateFromFile('Index')
+    .evaluate()
+    .setTitle('Smart Tamu Digital')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+}
+
+function setupDatabase() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('Visitors');
+  if (!sheet) {
+    sheet = ss.insertSheet('Visitors');
+    const headers = ['ID', 'Nama', 'NIK', 'Instansi', 'NoHP', 'Tujuan', 'Petugas', 'Keperluan', 'WaktuDatang', 'Status'];
+    sheet.appendRow(headers);
+    sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold').setBackground('#f1f5f9');
+    sheet.setFrozenRows(1);
+  }
+}
+
+function getAllData() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('Visitors');
+  if(!sheet) return { visitors: [] };
+  
+  const data = sheet.getDataRange().getDisplayValues();
+  if(data.length <= 1) return { visitors: [] };
+  
+  const headers = data[0];
+  const visitors = [];
+  
+  for(let i = 1; i < data.length; i++) {
+    let row = data[i];
+    let obj = {};
+    for(let j = 0; j < headers.length; j++) {
+      obj[headers[j].toLowerCase()] = row[j];
+    }
+    visitors.push({
+      id: obj['id'],
+      nama: obj['nama'],
+      nik: obj['nik'],
+      instansi: obj['instansi'],
+      nohp: obj['nohp'],
+      tujuan: obj['tujuan'],
+      petugas: obj['petugas'],
+      keperluan: obj['keperluan'],
+      waktuDatang: obj['waktudatang'],
+      status: obj['status']
+    });
+  }
+  
+  return { visitors: visitors };
+}
+
+function saveData(dataObj) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('Visitors');
+  
+  sheet.appendRow([
+    dataObj.id, dataObj.nama, dataObj.nik, dataObj.instansi, 
+    dataObj.nohp, dataObj.tujuan, dataObj.petugas, dataObj.keperluan, 
+    dataObj.waktuDatang, dataObj.status
+  ]);
+  
+  return getAllData();
+}
+
+function updateData(id, newStatus) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('Visitors');
+  const data = sheet.getDataRange().getValues();
+  
+  for(let i = 1; i < data.length; i++) {
+    if(data[i][0] === id) { // Index 0 adalah kolom ID
+      sheet.getRange(i + 1, 10).setValue(newStatus); // Kolom 10 adalah Status
+      break;
+    }
+  }
+  return getAllData();
+}
+
+function deleteData(id) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('Visitors');
+  const data = sheet.getDataRange().getValues();
+  
+  for(let i = 1; i < data.length; i++) {
+    if(data[i][0] === id) {
+      sheet.deleteRow(i + 1);
+      break;
+    }
+  }
+  return getAllData();
+}
+    </script>
+</body>
+</html>
